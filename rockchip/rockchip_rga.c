@@ -19,6 +19,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include <android/log.h>
+
 #include <sys/mman.h>
 #include <linux/stddef.h>
 
@@ -30,6 +32,10 @@
 #include "rockchip_drm.h"
 #include "rockchip_rga.h"
 #include "rga_reg.h"
+
+#define  LOGI(...) __android_log_print(ANDROID_LOG_INFO, "libdrm", __VA_ARGS__)
+#define  LOGW(...) __android_log_print(ANDROID_LOG_WARN, "libdrm", __VA_ARGS__)
+#define  LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "libdrm", __VA_ARGS__)
 
 enum rga_base_addr_reg {
 	rga_dst = 0,
@@ -138,52 +144,46 @@ static int rga_get_color_swap(int drm_color_format)
 {
 	unsigned int swap = 0;
 
-        switch (drm_color_format) {
-	case DRM_FORMAT_ABGR8888:
-	case DRM_FORMAT_XBGR8888:
-	case DRM_FORMAT_ABGR1555:
-	case DRM_FORMAT_ABGR4444:
-	case DRM_FORMAT_BGR888:
-	case DRM_FORMAT_BGR565:
+	switch (drm_color_format) {
+		case DRM_FORMAT_RGBA8888:
+		case DRM_FORMAT_RGBX8888:
+		case DRM_FORMAT_RGBA5551:
+		case DRM_FORMAT_RGBA4444:
+		case DRM_FORMAT_RGB888:
+		case DRM_FORMAT_RGB565:
+			break;
 
-	case DRM_FORMAT_YVU422:
-	case DRM_FORMAT_YVU420:
-	case DRM_FORMAT_NV21:
-	case DRM_FORMAT_NV61:
-		break;
+		case DRM_FORMAT_YUV422:
+		case DRM_FORMAT_YUV420:
+		case DRM_FORMAT_NV12:
+		case DRM_FORMAT_NV16:
+			break;
 
-	case DRM_FORMAT_BGRA8888:
-	case DRM_FORMAT_BGRX8888:
-	case DRM_FORMAT_BGRA5551:
-	case DRM_FORMAT_BGRA4444:
-		swap |= RGA_SRC_COLOR_ALPHA_SWAP;
-		break;
+		case DRM_FORMAT_ABGR8888:
+		case DRM_FORMAT_XBGR8888:
+		case DRM_FORMAT_ABGR1555:
+		case DRM_FORMAT_ABGR4444:
+			swap |= RGA_SRC_COLOR_ALPHA_SWAP;
 
-	case DRM_FORMAT_RGBA8888:
-	case DRM_FORMAT_RGBX8888:
-	case DRM_FORMAT_RGBA5551:
-	case DRM_FORMAT_RGBA4444:
-		swap |= RGA_SRC_COLOR_ALPHA_SWAP;
+		case DRM_FORMAT_BGRA8888:
+		case DRM_FORMAT_BGRX8888:
+		case DRM_FORMAT_BGRA5551:
+		case DRM_FORMAT_BGRA4444:
+		case DRM_FORMAT_BGR888:
+		case DRM_FORMAT_BGR565:
+			swap |= RGA_SRC_COLOR_RB_SWAP;
+			break;
 
-	case DRM_FORMAT_ARGB8888:
-	case DRM_FORMAT_XRGB8888:
-	case DRM_FORMAT_ARGB1555:
-	case DRM_FORMAT_ARGB4444:
-	case DRM_FORMAT_RGB888:
-	case DRM_FORMAT_RGB565:
-		swap |= RGA_SRC_COLOR_RB_SWAP;
-		break;
+		case DRM_FORMAT_YVU422:
+		case DRM_FORMAT_YVU420:
+		case DRM_FORMAT_NV21:
+		case DRM_FORMAT_NV61:
+			swap |= RGA_SRC_COLOR_UV_SWAP;
+			break;
 
-	case DRM_FORMAT_YUV422:
-	case DRM_FORMAT_YUV420:
-	case DRM_FORMAT_NV12:
-	case DRM_FORMAT_NV16:
-		swap |= RGA_SRC_COLOR_UV_SWAP;
-		break;
-
-	default:
-		printf("Unsupport input color format %d\n", drm_color_format);
-		break;
+		default:
+			printf("Unsupport input color format %d\n", drm_color_format);
+			break;
 	}
 
 	return swap;
@@ -192,100 +192,103 @@ static int rga_get_color_swap(int drm_color_format)
 static int rga_get_color_format(int drm_color_format)
 {
         switch (drm_color_format) {
-	case DRM_FORMAT_ARGB8888:
-	case DRM_FORMAT_ABGR8888:
-        case DRM_FORMAT_BGRA8888:
-        case DRM_FORMAT_RGBA8888:
-		return RGA_SRC_COLOR_FMT_ABGR8888;
+		case DRM_FORMAT_ARGB8888:
+		case DRM_FORMAT_ABGR8888:
+		case DRM_FORMAT_BGRA8888:
+		case DRM_FORMAT_RGBA8888:
+			return RGA_SRC_COLOR_FMT_ABGR8888;
 
-        case DRM_FORMAT_XRGB8888:
-        case DRM_FORMAT_XBGR8888:
-        case DRM_FORMAT_RGBX8888:
-        case DRM_FORMAT_BGRX8888:
-		return RGA_SRC_COLOR_FMT_XBGR8888;
+		case DRM_FORMAT_XRGB8888:
+		case DRM_FORMAT_XBGR8888:
+		case DRM_FORMAT_RGBX8888:
+		case DRM_FORMAT_BGRX8888:
+			return RGA_SRC_COLOR_FMT_XBGR8888;
 
-        case DRM_FORMAT_RGB888:
-        case DRM_FORMAT_BGR888:
-		return RGA_SRC_COLOR_FMT_RGB888;
+		case DRM_FORMAT_RGB888:
+		case DRM_FORMAT_BGR888:
+			return RGA_SRC_COLOR_FMT_RGB888;
 
-        case DRM_FORMAT_RGB565:
-        case DRM_FORMAT_BGR565:
-		return RGA_SRC_COLOR_FMT_RGB565;
+		case DRM_FORMAT_RGB565:
+		case DRM_FORMAT_BGR565:
+			return RGA_SRC_COLOR_FMT_RGB565;
 
-        case DRM_FORMAT_ARGB1555:
-        case DRM_FORMAT_ABGR1555:
-        case DRM_FORMAT_RGBA5551:
-        case DRM_FORMAT_BGRA5551:
-		return RGA_SRC_COLOR_FMT_ARGB1555;
+		case DRM_FORMAT_ARGB1555:
+		case DRM_FORMAT_ABGR1555:
+		case DRM_FORMAT_RGBA5551:
+		case DRM_FORMAT_BGRA5551:
+			return RGA_SRC_COLOR_FMT_ARGB1555;
 
-        case DRM_FORMAT_ARGB4444:
-        case DRM_FORMAT_ABGR4444:
-        case DRM_FORMAT_RGBA4444:
-        case DRM_FORMAT_BGRA4444:
-		return RGA_SRC_COLOR_FMT_ARGB4444;
+		case DRM_FORMAT_ARGB4444:
+		case DRM_FORMAT_ABGR4444:
+		case DRM_FORMAT_RGBA4444:
+		case DRM_FORMAT_BGRA4444:
+			return RGA_SRC_COLOR_FMT_ARGB4444;
 
-        case DRM_FORMAT_NV16:
-        case DRM_FORMAT_NV61:
-		return RGA_SRC_COLOR_FMT_YUV422SP;
+		case DRM_FORMAT_NV16:
+		case DRM_FORMAT_NV61:
+			return RGA_SRC_COLOR_FMT_YUV422SP;
 
-        case DRM_FORMAT_YUV422:
-        case DRM_FORMAT_YVU422:
-		return RGA_SRC_COLOR_FMT_YUV422P;
+		case DRM_FORMAT_YUV422:
+		case DRM_FORMAT_YVU422:
+			return RGA_SRC_COLOR_FMT_YUV422P;
 
-        case DRM_FORMAT_NV12:
-        case DRM_FORMAT_NV21:
-		return RGA_SRC_COLOR_FMT_YUV420SP;
+		case DRM_FORMAT_NV12:
+		case DRM_FORMAT_NV21:
+			return RGA_SRC_COLOR_FMT_YUV420SP;
 
-        case DRM_FORMAT_YUV420:
-        case DRM_FORMAT_YVU420:
-		return RGA_SRC_COLOR_FMT_YUV420P;
+		case DRM_FORMAT_YUV420:
+		case DRM_FORMAT_YVU420:
+			return RGA_SRC_COLOR_FMT_YUV420P;
 
-        default:
-                return -EINVAL;
-        };
+		default:
+			return -EINVAL;
+	};
 }
 
 int get_string_of_cmd(int index,char *buf)
 {
-    switch (index) {
-        case MODE_CTRL			    :strcpy(buf,"MODE_CTRL          ");break;
-        case SRC_INFO			    :strcpy(buf,"SRC_INFO           ");break;
-        case SRC_Y_RGB_BASE_ADDR	:strcpy(buf,"SRC_Y_RGB_BASE_ADDR");break;
-        case SRC_CB_BASE_ADDR		:strcpy(buf,"SRC_CB_BASE_ADDR   ");break;
-        case SRC_CR_BASE_ADDR		:strcpy(buf,"SRC_CR_BASE_ADDR   ");break;
-        case SRC1_RGB_BASE_ADDR		:strcpy(buf,"SRC1_RGB_BASE_ADDR ");break;
-        case SRC_VIR_INFO			:strcpy(buf,"SRC_VIR_INFO       ");break;
-        case SRC_ACT_INFO			:strcpy(buf,"SRC_ACT_INFO       ");break;
-        case SRC_X_FACTOR			:strcpy(buf,"SRC_X_FACTOR       ");break;
-        case SRC_Y_FACTOR			:strcpy(buf,"SRC_Y_FACTOR       ");break;
-        case SRC_BG_COLOR			:strcpy(buf,"SRC_BG_COLOR       ");break;
-        case SRC_FG_COLOR			:strcpy(buf,"SRC_FG_COLOR       ");break;
-        case SRC_TR_COLOR0			:strcpy(buf,"SRC_TR_COLOR0      ");break;
-        case SRC_TR_COLOR1			:strcpy(buf,"SRC_TR_COLOR1      ");break;
-        case DST_INFO				:strcpy(buf,"DST_INFO           ");break;
-        case DST_Y_RGB_BASE_ADDR	:strcpy(buf,"DST_Y_RGB_BASE_ADDR");break;
-        case DST_CB_BASE_ADDR		:strcpy(buf,"DST_CB_BASE_ADDR   ");break;
-        case DST_CR_BASE_ADDR		:strcpy(buf,"DST_CR_BASE_ADDR   ");break;
-        case DST_VIR_INFO			:strcpy(buf,"DST_VIR_INFO       ");break;
-        case DST_ACT_INFO			:strcpy(buf,"DST_ACT_INFO       ");break;
-        case ALPHA_CTRL0			:strcpy(buf,"ALPHA_CTRL0        ");break;
-        case ALPHA_CTRL1			:strcpy(buf,"ALPHA_CTRL1        ");break;
-        case FADING_CTRL			:strcpy(buf,"FADING_CTRL        ");break;
-        case PAT_CON				:strcpy(buf,"PAT_CON            ");break;
-        case ROP_CON0				:strcpy(buf,"ROP_CON0           ");break;
-        case ROP_CON1				:strcpy(buf,"ROP_CON1           ");break;
-        case MASK_BASE				:strcpy(buf,"MASK_BASE          ");break;
-        case MMU_CTRL1				:strcpy(buf,"MMU_CTRL1          ");break;
-        case MMU_SRC_BASE			:strcpy(buf,"MMU_SRC_BASE       ");break;
-        case MMU_SRC1_BASE			:strcpy(buf,"MMU_SRC1_BASE      ");break;
-        case MMU_DST_BASE			:strcpy(buf,"MMU_DST_BASE       ");break;
-        case MMU_ELS_BASE			:strcpy(buf,"MMU_ELS_BASE       ");break;
-        case RGA_BUF_TYPE_GEMFD | SRC_Y_RGB_BASE_ADDR   :strcpy(buf,"SRC_Y_RGB_BASE_ADDR");break;
-        case RGA_BUF_TYPE_GEMFD | DST_Y_RGB_BASE_ADDR   :strcpy(buf,"DST_Y_RGB_BASE_ADDR");break;
-        default                                         :strcpy(buf,"ERROR_OFFSET		");break;
-    }
-    return 0;
+	switch (index) {
+		case MODE_CTRL		:strcpy(buf,"MODE_CTRL          ");break;
+		case SRC_INFO		:strcpy(buf,"SRC_INFO           ");break;
+		case SRC_Y_RGB_BASE_ADDR:strcpy(buf,"SRC_Y_RGB_BASE_ADDR");break;
+		case SRC_CB_BASE_ADDR	:strcpy(buf,"SRC_CB_BASE_ADDR   ");break;
+		case SRC_CR_BASE_ADDR	:strcpy(buf,"SRC_CR_BASE_ADDR   ");break;
+		case SRC1_RGB_BASE_ADDR	:strcpy(buf,"SRC1_RGB_BASE_ADDR ");break;
+		case SRC_VIR_INFO	:strcpy(buf,"SRC_VIR_INFO       ");break;
+		case SRC_ACT_INFO	:strcpy(buf,"SRC_ACT_INFO       ");break;
+		case SRC_X_FACTOR	:strcpy(buf,"SRC_X_FACTOR       ");break;
+		case SRC_Y_FACTOR	:strcpy(buf,"SRC_Y_FACTOR       ");break;
+		case SRC_BG_COLOR	:strcpy(buf,"SRC_BG_COLOR       ");break;
+		case SRC_FG_COLOR	:strcpy(buf,"SRC_FG_COLOR       ");break;
+		case SRC_TR_COLOR0	:strcpy(buf,"SRC_TR_COLOR0      ");break;
+		case SRC_TR_COLOR1	:strcpy(buf,"SRC_TR_COLOR1      ");break;
+		case DST_INFO		:strcpy(buf,"DST_INFO           ");break;
+		case DST_Y_RGB_BASE_ADDR:strcpy(buf,"DST_Y_RGB_BASE_ADDR");break;
+		case DST_CB_BASE_ADDR	:strcpy(buf,"DST_CB_BASE_ADDR   ");break;
+		case DST_CR_BASE_ADDR	:strcpy(buf,"DST_CR_BASE_ADDR   ");break;
+		case DST_VIR_INFO	:strcpy(buf,"DST_VIR_INFO       ");break;
+		case DST_ACT_INFO	:strcpy(buf,"DST_ACT_INFO       ");break;
+		case ALPHA_CTRL0	:strcpy(buf,"ALPHA_CTRL0        ");break;
+		case ALPHA_CTRL1	:strcpy(buf,"ALPHA_CTRL1        ");break;
+		case FADING_CTRL	:strcpy(buf,"FADING_CTRL        ");break;
+		case PAT_CON		:strcpy(buf,"PAT_CON            ");break;
+		case ROP_CON0		:strcpy(buf,"ROP_CON0           ");break;
+		case ROP_CON1		:strcpy(buf,"ROP_CON1           ");break;
+		case MASK_BASE		:strcpy(buf,"MASK_BASE          ");break;
+		case MMU_CTRL1		:strcpy(buf,"MMU_CTRL1          ");break;
+		case MMU_SRC_BASE	:strcpy(buf,"MMU_SRC_BASE       ");break;
+		case MMU_SRC1_BASE	:strcpy(buf,"MMU_SRC1_BASE      ");break;
+		case MMU_DST_BASE	:strcpy(buf,"MMU_DST_BASE       ");break;
+		case MMU_ELS_BASE	:strcpy(buf,"MMU_ELS_BASE       ");break;
+		case RGA_BUF_TYPE_GEMFD | SRC_Y_RGB_BASE_ADDR:
+					 strcpy(buf,"SRC_Y_RGB_BASE_ADDR");break;
+		case RGA_BUF_TYPE_GEMFD | DST_Y_RGB_BASE_ADDR:
+					 strcpy(buf,"DST_Y_RGB_BASE_ADDR");break;
+		default			:strcpy(buf,"ERROR_OFFSET       ");break;
+	}
+	return 0;
 }
+
 static unsigned int rga_get_scaling(unsigned int src, unsigned int dst)
 {
 	/*
@@ -375,9 +378,15 @@ rga_lookup_draw_pos(struct rga_corners_addr_offset *offsets,
 static int rga_add_cmd(struct rga_context *ctx, unsigned long cmd,
 			unsigned long value)
 {
-	//char buf[25];
-	//get_string_of_cmd(cmd, buf);
-	//fprintf(stderr,"%s:0x%x:0x%x\n",buf,cmd,value);
+	char buf[25];
+	const char *fmt;
+
+	if (ctx->log & 1) {
+		get_string_of_cmd(cmd, buf);
+		fprintf(stderr,"%s:0x%x:0x%x\n",buf,cmd,value);
+		LOGI("%s:%8x:  0x%x\n",buf,cmd,value);
+	}
+
 	switch (cmd & ~(RGA_IMGBUF_USERPTR)) {
 	case SRC_Y_RGB_BASE_ADDR:
 	case SRC_CB_BASE_ADDR:
@@ -441,6 +450,41 @@ int rga_dump_context(struct rga_context ctx)
     return 0;
 }
 
+int rga_src_color_is_yuv(int format)
+{
+	int ret = 0;
+	switch (format) {
+		case RGA_SRC_COLOR_FMT_YUV422SP:
+		case RGA_SRC_COLOR_FMT_YUV422P:
+		case RGA_SRC_COLOR_FMT_YUV420SP:
+		case RGA_SRC_COLOR_FMT_YUV420P:
+			ret = 1;
+			break;
+
+		default:
+			break;
+	}
+
+	return ret;
+}
+
+int rga_dst_color_is_yuv(int format)
+{
+	int ret = 0;
+	switch (format) {
+		case RGA_DST_COLOR_FMT_YUV422SP:
+		case RGA_DST_COLOR_FMT_YUV422P:
+		case RGA_DST_COLOR_FMT_YUV420SP:
+		case RGA_DST_COLOR_FMT_YUV420P:
+			ret = 1;
+			break;
+
+		default:
+			break;
+	}
+
+	return ret;
+}
 /*
  * rga_add_base_addr - helper function to set dst/src base address register.
  *
@@ -765,12 +809,6 @@ int rga_multiple_transform(struct rga_context *ctx, struct rga_image *src,
 	src_info.data.swap     = rga_get_color_swap(src->color_mode);
 	dst_info.data.swap     = rga_get_color_swap(dst->color_mode);
 
-	if (dst_info.data.format == RGA_DST_COLOR_FMT_YUV422SP ||
-	    dst_info.data.format == RGA_DST_COLOR_FMT_YUV422P ||
-	    dst_info.data.format == RGA_DST_COLOR_FMT_YUV420SP ||
-	    dst_info.data.format == RGA_DST_COLOR_FMT_YUV420P)
-		dst_info.data.csc_mode = RGA_DST_CSC_MODE_BT601_R0;
-
 	switch (degree) {
 	case 90:
 		src_info.data.rot_mode = RGA_SRC_ROT_MODE_90_DEGREE;
@@ -838,11 +876,19 @@ int rga_multiple_transform(struct rga_context *ctx, struct rga_image *src,
 	rga_add_cmd(ctx, SRC_X_FACTOR, x_factor.val);
 	rga_add_cmd(ctx, SRC_Y_FACTOR, y_factor.val);
 
-	if (src_info.data.format == RGA_SRC_COLOR_FMT_YUV422SP ||
-	    src_info.data.format == RGA_SRC_COLOR_FMT_YUV422P ||
-	    src_info.data.format == RGA_SRC_COLOR_FMT_YUV420SP ||
-	    src_info.data.format == RGA_SRC_COLOR_FMT_YUV420P)
+	if (rga_src_color_is_yuv(src_info.data.format)
+			&& rga_dst_color_is_yuv(dst_info.data.format)) {
 		src_info.data.csc_mode = RGA_SRC_CSC_MODE_BT601_R0;
+		dst_info.data.csc_mode = RGA_SRC_CSC_MODE_BT601_R0;
+	}
+
+	if (rga_src_color_is_yuv(src_info.data.format)
+			&& !rga_dst_color_is_yuv(dst_info.data.format))
+		src_info.data.csc_mode = RGA_SRC_CSC_MODE_BT601_R1;
+
+	if (!rga_src_color_is_yuv(src_info.data.format)
+			&& rga_dst_color_is_yuv(dst_info.data.format))
+		dst_info.data.csc_mode = RGA_SRC_CSC_MODE_BT601_R1;
 
 	rga_add_cmd(ctx, SRC_INFO, src_info.val);
 	rga_add_cmd(ctx, DST_INFO, dst_info.val);
@@ -852,7 +898,7 @@ int rga_multiple_transform(struct rga_context *ctx, struct rga_image *src,
 	 * Cacluate the framebuffer virtual strides and active size,
 	 * note that the step of vir_stride / vir_width is 4 byte words
 	 */
-	src_vir_info.data.vir_stride = src->stride >> 2;
+	src_vir_info.data.vir_stride = 0x3ff;//src->stride >> 2;
 	src_vir_info.data.vir_width = src->stride >> 2;
 
 	src_act_info.data.act_height = src_h - 1;

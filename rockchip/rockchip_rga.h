@@ -37,6 +37,7 @@ struct rga_image {
 
 struct rga_context {
 	int				fd;
+	int				log;
 	unsigned int			major;
 	unsigned int			minor;
 	struct drm_rockchip_rga_cmd	cmd[RGA_MAX_CMD_NR];
