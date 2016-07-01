@@ -166,6 +166,7 @@ extern "C" {
 #define DRM_MODE_PROP_IMMUTABLE (1<<2)
 #define DRM_MODE_PROP_ENUM      (1<<3) /* enumerated type with text strings */
 #define DRM_MODE_PROP_BLOB      (1<<4)
+#define DRM_MODE_PROP_BITMASK	(1<<5) /* bitmask of enumerated types */
 
 #define DRM_MODE_CURSOR_BO      (1<<0)
 #define DRM_MODE_CURSOR_MOVE    (1<<1)
