@@ -321,7 +321,7 @@ rga_get_addr_offset(struct rga_image *img, unsigned int x, unsigned int y,
 	pixel_width = img->stride / img->width;
 
 	lt->y_off = y * img->stride + x * pixel_width;
-	lt->u_off = img->width * img->height + (y / y_div) * uv_stride + x / x_div;
+	lt->u_off = img->stride * img->height + (y / y_div) * uv_stride + x / x_div;
 	lt->v_off = lt->u_off + img->width * img->height / uv_factor;
 
 	lb->y_off = lt->y_off + (h - 1) * img->stride;
