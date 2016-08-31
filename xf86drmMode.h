@@ -380,6 +380,10 @@ int drmModeAddFB2WithModifiers(int fd, uint32_t width, uint32_t height,
 			       uint32_t pitches[4], uint32_t offsets[4],
 			       uint64_t modifier[4], uint32_t *buf_id, uint32_t flags);
 
+extern int drmModeAddFB2_ext(int fd, uint32_t width, uint32_t height,
+			 uint32_t pixel_format, uint32_t bo_handles[4],
+			 uint32_t pitches[4], uint32_t offsets[4], __u64 modifier[4],
+			 uint32_t *buf_id, uint32_t flags);
 /**
  * Destroies the given framebuffer.
  */

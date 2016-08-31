@@ -307,6 +307,31 @@ int drmModeAddFB2(int fd, uint32_t width, uint32_t height,
 					  buf_id, flags);
 }
 
+int drmModeAddFB2_ext(int fd, uint32_t width, uint32_t height,
+		  uint32_t pixel_format, uint32_t bo_handles[4],
+		  uint32_t pitches[4], uint32_t offsets[4], __u64 modifier[4],
+		  uint32_t *buf_id, uint32_t flags)
+{
+	struct drm_mode_fb_cmd2 f;
+	int ret;
+	int i;
+
+	f.width  = width;
+	f.height = height;
+	f.pixel_format = pixel_format;
+	f.flags = flags;
+	memcpy(f.handles, bo_handles, 4 * sizeof(bo_handles[0]));
+	memcpy(f.pitches, pitches, 4 * sizeof(pitches[0]));
+	memcpy(f.offsets, offsets, 4 * sizeof(offsets[0]));
+	memcpy(f.modifier, modifier, 4 * sizeof(modifier[0]));
+
+	if ((ret = DRM_IOCTL(fd, DRM_IOCTL_MODE_ADDFB2, &f)))
+		return ret;
+
+	*buf_id = f.fb_id;
+	return 0;
+}
+
 int drmModeRmFB(int fd, uint32_t bufferId)
 {
 	return DRM_IOCTL(fd, DRM_IOCTL_MODE_RMFB, &bufferId);
