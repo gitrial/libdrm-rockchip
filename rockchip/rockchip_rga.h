@@ -29,6 +29,7 @@ struct rga_image {
 	unsigned int			width;
 	unsigned int			height;
 	unsigned int			stride;
+	unsigned int			hstride;
 	unsigned int			fill_color;
 	enum e_rga_buf_type		buf_type;
 	unsigned int			bo[RGA_PLANE_MAX_NR];
