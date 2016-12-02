@@ -78,6 +78,8 @@ static int rga_get_uv_factor(int drm_color_format)
 	case DRM_FORMAT_YVU420:
 	case DRM_FORMAT_NV21:
 	case DRM_FORMAT_NV12:
+	case DRM_FORMAT_NV12_10:
+	//case DRM_FORMAT_NV21_10:
 		ydiv = 4;
 		break;
 
@@ -104,6 +106,8 @@ static int rga_get_ydiv(int drm_color_format)
 	case DRM_FORMAT_YVU420:
 	case DRM_FORMAT_NV21:
 	case DRM_FORMAT_NV12:
+	case DRM_FORMAT_NV12_10:
+	//case DRM_FORMAT_NV21_10:
 		ydiv = 2;
 		break;
 
@@ -123,6 +127,8 @@ static int rga_get_xdiv(int drm_color_format)
 	case DRM_FORMAT_NV61:
 	case DRM_FORMAT_NV21:
 	case DRM_FORMAT_NV12:
+	case DRM_FORMAT_NV12_10:
+	//case DRM_FORMAT_NV21_10:
 		xdiv = 1;
 		break;
 
@@ -157,6 +163,7 @@ static int rga_get_color_swap(int drm_color_format)
 		case DRM_FORMAT_YUV420:
 		case DRM_FORMAT_NV12:
 		case DRM_FORMAT_NV16:
+		case DRM_FORMAT_NV12_10:
 			break;
 
 		case DRM_FORMAT_ABGR8888:
@@ -178,6 +185,7 @@ static int rga_get_color_swap(int drm_color_format)
 		case DRM_FORMAT_YVU420:
 		case DRM_FORMAT_NV21:
 		case DRM_FORMAT_NV61:
+		//case DRM_FORMAT_NV21_10:
 			swap |= RGA_SRC_COLOR_UV_SWAP;
 			break;
 
@@ -234,6 +242,8 @@ static int rga_get_color_format(int drm_color_format)
 
 		case DRM_FORMAT_NV12:
 		case DRM_FORMAT_NV21:
+		case DRM_FORMAT_NV12_10:
+			//case DRM_FORMAT_NV21_10:
 			return RGA_SRC_COLOR_FMT_YUV420SP;
 
 		case DRM_FORMAT_YUV420:
@@ -809,6 +819,11 @@ int rga_multiple_transform(struct rga_context *ctx, struct rga_image *src,
 	src_info.data.swap     = rga_get_color_swap(src->color_mode);
 	dst_info.data.swap     = rga_get_color_swap(dst->color_mode);
 
+	if (src->color_mode == DRM_FORMAT_NV12_10) {
+		src_info.data.yuv_ten_en = RGA_SRC_YUV_TEN_ENABLE;
+		src_info.data.yuv_ten_round_en = RGA_SRC_YUV_TEN_ROUND_ENABLE;
+	}
+
 	switch (degree) {
 	case 90:
 		src_info.data.rot_mode = RGA_SRC_ROT_MODE_90_DEGREE;
@@ -854,6 +869,8 @@ int rga_multiple_transform(struct rga_context *ctx, struct rga_image *src,
 	if (src_w == scale_dst_w) {
 		src_info.data.hscl_mode = RGA_SRC_HSCL_MODE_NO;
 		x_factor.val = 0;
+		if (src->color_mode == DRM_FORMAT_NV12_10)
+		    src_info.data.hscl_mode = RGA_SRC_HSCL_MODE_DOWN | RGA_SRC_HSCL_MODE_UP;
 	} else if(src_w > scale_dst_w) {
 		src_info.data.hscl_mode = RGA_SRC_HSCL_MODE_DOWN;
 		x_factor.data.down_scale_factor = rga_get_scaling(src_w, scale_dst_w) + 1;
@@ -865,6 +882,8 @@ int rga_multiple_transform(struct rga_context *ctx, struct rga_image *src,
 	if (src_h == scale_dst_h) {
 		src_info.data.vscl_mode = RGA_SRC_VSCL_MODE_NO;
 		y_factor.val = 0;
+		if (src->color_mode == DRM_FORMAT_NV12_10)
+		    src_info.data.vscl_mode = RGA_SRC_VSCL_MODE_DOWN | RGA_SRC_VSCL_MODE_UP;
 	} else if(src_h > scale_dst_h) {
 		src_info.data.vscl_mode = RGA_SRC_VSCL_MODE_DOWN;
 		y_factor.data.down_scale_factor = rga_get_scaling(src_h, scale_dst_h) + 1;

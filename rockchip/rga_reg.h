@@ -144,6 +144,16 @@ enum e_rga_src_bic_coe_select {
 	RGA_SRC_BIC_COE_SELEC_BSPLINE = 3,
 };
 
+enum e_rga_src_yuv_ten_enable {
+	RGA_SRC_YUV_TEN_DISABLE = 0,
+	RGA_SRC_YUV_TEN_ENABLE = 1,
+};
+
+enum e_rga_src_yuv_ten_round_enable {
+	RGA_SRC_YUV_TEN_ROUND_DISABLE = 0,
+	RGA_SRC_YUV_TEN_ROUND_ENABLE = 1,
+};
+
 enum e_rga_dst_color_format {
 	RGA_DST_COLOR_FMT_ABGR888 = 0,
 	RGA_DST_COLOR_FMT_XBGR888 = 1,
@@ -224,24 +234,29 @@ union rga_src_info {
 	unsigned int val;
 	struct {
 		/* [0:3] */
-		enum e_rga_src_color_format	format:4;
+		enum e_rga_src_color_format		format:4;
 		/* [4:7] */
-		enum e_rga_src_color_swap	swap:3;
-		unsigned int			cp_endian:1;
+		enum e_rga_src_color_swap		swap:3;
+		unsigned int				cp_endian:1;
 		/* [8:17] */
-		enum e_rga_src_csc_mode		csc_mode:2;
-		enum e_rga_src_rot_mode		rot_mode:2;
-		enum e_rga_src_mirr_mode	mir_mode:2;
-		enum e_rga_src_hscl_mode	hscl_mode:2;
-		enum e_rga_src_vscl_mode	vscl_mode:2;
+		enum e_rga_src_csc_mode			csc_mode:2;
+		enum e_rga_src_rot_mode			rot_mode:2;
+		enum e_rga_src_mirr_mode		mir_mode:2;
+		enum e_rga_src_hscl_mode		hscl_mode:2;
+		enum e_rga_src_vscl_mode		vscl_mode:2;
 		/* [18:22] */
-		unsigned int			trans_mode:1;
-		enum e_rga_src_trans_enable	trans_enable:4;
+		unsigned int				trans_mode:1;
+		enum e_rga_src_trans_enable		trans_enable:4;
 		/* [23:25] */
-		unsigned int			dither_up_en:1;
-		enum e_rga_src_bic_coe_select	bic_coe_sel:2;
-		/* [26:31] */
-		unsigned int			reserved:6;
+		unsigned int				dither_up_en:1;
+		enum e_rga_src_bic_coe_select		bic_coe_sel:2;
+		/* [26] */
+		unsigned int				reserved:1;
+		/* [27:28] */
+		enum e_rga_src_yuv_ten_enable		yuv_ten_en:1;
+		enum e_rga_src_yuv_ten_round_enable	yuv_ten_round_en:1;
+		/* [29:31]*/
+		unsigned int				reserved1:3;
 	} data;
 };
 
