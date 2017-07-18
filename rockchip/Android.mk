@@ -9,7 +9,7 @@ LOCAL_SRC_FILES := rockchip_drm.c rockchip_rga.c
 LOCAL_EXPORT_C_INCLUDE_DIRS += \
 	$(LOCAL_PATH)/rockchip
 
-LOCAL_C_INCLUDES := \
+#LOCAL_C_INCLUDES := \
 	$(LIBDRM_TOP) \
 	$(LIBDRM_TOP)/rockchip \
 	$(LIBDRM_TOP)/include/drm

@@ -46,10 +46,12 @@ LOCAL_MODULE := libdrm_platform
 LOCAL_SRC_FILES := $(filter-out %.h,$(LIBDRM_FILES))
 LOCAL_EXPORT_C_INCLUDE_DIRS := \
 	$(LOCAL_PATH) \
-	$(LOCAL_PATH)/include/drm
+	$(LOCAL_PATH)/include/drm \
+        $(LOCAL_PATH)/rockchip
 
 LOCAL_C_INCLUDES := \
-	$(LOCAL_PATH)/include/drm
+	$(LOCAL_PATH)/include/drm \
+	$(LOCAL_PATH)/rockchip
 
 LOCAL_CFLAGS := \
 	$(common_CFLAGS)
