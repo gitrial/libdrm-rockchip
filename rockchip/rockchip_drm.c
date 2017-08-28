@@ -286,7 +286,7 @@ void *rockchip_bo_map(struct rockchip_bo *bo)
 			return NULL;
 		}
 
-		bo->vaddr = mmap(0, bo->size, PROT_READ | PROT_WRITE,
+		bo->vaddr = mmap64(0, bo->size, PROT_READ | PROT_WRITE,
 			   MAP_SHARED, dev->fd, req.offset);
 		if (bo->vaddr == MAP_FAILED) {
 			fprintf(stderr, "failed to mmap buffer[%s].\n",
