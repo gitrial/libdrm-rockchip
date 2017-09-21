@@ -3,6 +3,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := libdrm_rockchip
 
+LOCAL_PROPRIETARY_MODULE := true
 LOCAL_SHARED_LIBRARIES := libdrm
 
 LOCAL_SRC_FILES := rockchip_drm.c rockchip_rga.c
