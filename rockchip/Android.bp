@@ -11,3 +11,9 @@ cc_library_shared {
         "-Werror",
     ],
 }
+
+vendor_public_library {
+    name: "libdrm_rockchip",
+    symbol_file: "libdrm_rockchip.map.txt",
+}
+
