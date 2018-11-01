@@ -106,3 +106,6 @@ tests/etnaviv/etnaviv_2d_test
 tests/etnaviv/etnaviv_cmd_stream_test
 tests/etnaviv/etnaviv_bo_cache_test
 man/*.3
+rockchip/libdrm_rockchip.pc
+tests/planetest/atomictest
+tests/planetest/planetest
