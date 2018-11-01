@@ -18,9 +18,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-
-#include <android/log.h>
-
 #include <sys/mman.h>
 #include <linux/stddef.h>
 
@@ -32,11 +29,16 @@
 #include "rockchip_drm.h"
 #include "rockchip_rga.h"
 #include "rga_reg.h"
-
+#ifdef __ANDROID__
+#include <android/log.h>
 #define  LOGI(...) __android_log_print(ANDROID_LOG_INFO, "libdrm", __VA_ARGS__)
 #define  LOGW(...) __android_log_print(ANDROID_LOG_WARN, "libdrm", __VA_ARGS__)
 #define  LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "libdrm", __VA_ARGS__)
-
+#else
+#define  LOGI(...) print("libdrm", __VA_ARGS__)
+#define  LOGW(...) print("libdrm", __VA_ARGS__)
+#define  LOGE(...) print("libdrm", __VA_ARGS__)
+#endif
 enum rga_base_addr_reg {
 	rga_dst = 0,
 	rga_src
