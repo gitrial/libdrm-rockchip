@@ -424,6 +424,7 @@ fi
 AM_CONDITIONAL(HAVE_ROCKCHIP, [test "x$ROCKCHIP" = xyes])
 if test "x$ROCKCHIP" = xyes; then
 	AC_DEFINE(HAVE_ROCKCHIP, 1, [Have ROCKCHIP support])
+fi
 
 AM_CONDITIONAL(HAVE_VC4, [test "x$VC4" = xyes])
 if test "x$VC4" = xyes; then
